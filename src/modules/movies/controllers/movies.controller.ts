@@ -18,7 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@modules/auth/guards';
 import { AuthRequest } from '@modules/auth/types/requests';
-import { MoviesNotFoundGuard } from '@modules/movies/guards';
+import {MoviesIsExistGuard, MoviesNotFoundGuard} from '@modules/movies/guards';
 import { MoviesCreateRequest, MoviesGetQueryRequest, MoviesUpdateRequest } from '@modules/movies/requests';
 import { MovieResource } from '@modules/movies/resources/movie.resource';
 import { MoviesService } from '@modules/movies/services';
@@ -68,6 +68,7 @@ export class MoviesController {
   }
 
   @Post()
+  @UseGuards(MoviesIsExistGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
@@ -77,24 +78,10 @@ export class MoviesController {
     @Body() body: MoviesCreateRequest,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<MovieResource> {
-    const userId = request.user.id;
-    
-    const isExists = await this.moviesService.findOneWhere({
-      where: {
-        year: body.year,
-        title: body.title,
-        user_id: userId,
-      },
-    });
-
-    if (isExists) {
-      throw new Error('Movie with the same title and year already exists');
-    }
-
     const movie = await this.moviesService.create({
       ...body,
       file,
-      userId,
+      userId: request.user.id,
     });
 
     return plainToClass(MovieResource, movie);

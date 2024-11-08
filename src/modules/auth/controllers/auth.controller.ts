@@ -17,7 +17,7 @@ export class AuthController {
   @Post('login')
   public async login(
     @Body() body: AuthLoginRequest,
-    @Res({ passthrough: true }) response: Response
+    @Res() response: Response
   ): Promise<{
     accessToken: string;
   }> {
