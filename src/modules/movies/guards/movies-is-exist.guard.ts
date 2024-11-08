@@ -14,8 +14,8 @@ export class MoviesIsExistGuard implements CanActivate {
   private readonly moviesService: MoviesService;
   
   public async canActivate(context: ExecutionContext): Promise<boolean> {
-    const id = request?.params?.id;
     const request = context.switchToHttp().getRequest();
+    const id = request?.params?.id;
     const userId = request.user.id;
     const body = request.body;
     
