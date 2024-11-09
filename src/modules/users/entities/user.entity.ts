@@ -1,5 +1,5 @@
-import {MovieEntity} from "@modules/movies/entites/movie.entity";
-import {BaseEntity, Column, Entity, OneToMany, PrimaryColumn} from 'typeorm';
+import { MovieEntity } from '@modules/movies/entites/movie.entity';
+import { BaseEntity, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {

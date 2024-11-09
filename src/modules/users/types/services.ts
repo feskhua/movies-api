@@ -1,4 +1,4 @@
-export interface UsersServiceCreateParams {
+export interface UsersCreateParams {
   email: string;
   password: string;
 }

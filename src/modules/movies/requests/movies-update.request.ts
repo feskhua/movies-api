@@ -19,6 +19,9 @@ export class MoviesUpdateRequest {
   @IsOptional()
   public poster?: string;
 
-  @ApiProperty({ type: 'string', format: 'binary' })
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+  })
   public file: unknown;
 }

@@ -1,6 +1,5 @@
-import {UserEntity} from "@modules/users/entities/user.entity";
-import {BaseEntity, Column, Entity, ManyToOne, PrimaryColumn} from 'typeorm';
-
+import { UserEntity } from '@modules/users/entities/user.entity';
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity({ name: 'movies' })
 export class MovieEntity extends BaseEntity {
@@ -23,4 +22,10 @@ export class MovieEntity extends BaseEntity {
 
   @ManyToOne(() => UserEntity, (user) => user.movies)
   public user: UserEntity;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
+  public created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)', onUpdate: 'CURRENT_TIMESTAMP(6)' })
+  public updated_at: Date;
 }

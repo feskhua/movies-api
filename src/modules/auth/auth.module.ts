@@ -8,14 +8,16 @@ import { UsersModule } from '@modules/users';
 @Global()
 @Module({
   imports: [
-    UsersModule,
     ConfigModule,
+    UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         global: true,
         secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') },
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN'),
+        },
       }),
       inject: [ConfigService],
     }),

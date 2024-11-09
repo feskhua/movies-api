@@ -1,14 +1,14 @@
-import {MovieEntity} from "@modules/movies/entites/movie.entity";
+import { MovieEntity } from '@modules/movies/entites/movie.entity';
 import { FindOptionsWhere } from 'typeorm';
 
-export interface MoviesServiceCreateParams {
+export interface MoviesCreateParams {
   title: string;
   userId: string;
   year: number;
   file?: Express.Multer.File;
 }
 
-export interface MoviesServiceUpdateParams {
+export interface MoviesUpdateParams {
   id: string;
   title?: string;
   poster?: string;
@@ -17,14 +17,14 @@ export interface MoviesServiceUpdateParams {
   file?: Express.Multer.File;
 }
 
-export interface MoviesFindAllParams {
+export interface MoviesAllParams {
   userId: string;
   page: number;
   perPage: number;
 }
 
-export interface MoviesFindOneAndWhere {
-  where: FindOptionsWhere<MovieEntity>[] | FindOptionsWhere<MovieEntity>
+export interface MoviesOne {
+  where?: FindOptionsWhere<MovieEntity>[] | FindOptionsWhere<MovieEntity>;
 }
 
 export interface MoviesDeleteParams {

@@ -8,12 +8,15 @@ export class MoviesCreateRequest {
   public title: string;
 
   @ApiProperty()
-  @Transform(({ value }) => Number(value))
   @IsNumber()
   @Min(1800)
   @Max(3100)
+  @Transform(({ value }) => Number(value))
   public year: number;
 
-  @ApiProperty({ type: 'string', format: 'binary' })
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+  })
   public file: unknown;
 }

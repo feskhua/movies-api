@@ -1,7 +1,7 @@
-import { MovieResource } from '@modules/movies/resources/movie.resource';
+import { MovieTransformer } from '@modules/movies/transformers/movie.transformer';
 
 export interface ListControllerReturnType {
-  data: MovieResource[];
+  data: MovieTransformer[];
   meta: {
     limit: number;
     page: number;

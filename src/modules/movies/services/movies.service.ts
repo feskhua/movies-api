@@ -1,102 +1,24 @@
-import {MovieEntity} from "@modules/movies/entites/movie.entity";
-import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { MovieEntity } from '@modules/movies/entites/movie.entity';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  MoviesAllParams,
+  MoviesCreateParams,
   MoviesDeleteParams,
-  MoviesFindAllParams,
-  MoviesFindOneAndWhere,
-  MoviesServiceCreateParams,
-  MoviesServiceUpdateParams,
+  MoviesOne,
+  MoviesUpdateParams,
 } from '@modules/movies/types';
-import * as fs from 'fs';
-import { randomUUID } from 'crypto';
-import * as path from 'path';
 
 import { DeleteResult, Repository } from 'typeorm';
+import { Files } from '@app/utils';
 
 @Injectable()
 export class MoviesService {
   @InjectRepository(MovieEntity)
   private movieRepository: Repository<MovieEntity>;
 
-  @Inject()
-  private configService: ConfigService;
-
-  private getStoragePath(...parts: string[]): string {
-    return path.join(
-      path.resolve(this.configService.get('STORAGE_DIRECTORY', 'storage')),
-      ...(parts ?? []),
-    );
-  }
-
-  private async savePoster(poster: Express.Multer.File): Promise<string> {
-    const fileName = `${randomUUID()}-${poster.originalname}`;
-    
-    
-    const filePath = this.getStoragePath(fileName);
-    
-    fs.writeFileSync(filePath, poster.buffer);
-
-    return fileName;
-  }
-
-  private removePoster(poster: string): void {
-    const filePath = this.getStoragePath(poster);
-
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  }
-
-  public async create(props: MoviesServiceCreateParams): Promise<MovieEntity> {
-    const { file, userId, ...params } = props;
-    let poster = null;
-
-    if (file) {
-      try {
-        poster = await this.savePoster(file);
-      } catch (e) {
-        console.log(e)
-        throw new Error('Error save poster');
-      }
-    }
-    
-    return this.movieRepository.save({
-      ...params,
-      user_id: userId,
-      poster,
-    });
-  }
-
-  public async update(props: MoviesServiceUpdateParams): Promise<MovieEntity> {
-    const { file, ...params } = props;
-
-    const movie = await this.findOneWhere({ where: { id: params.id } });
-
-    let fileName: string;
-
-    if (!movie) {
-      throw new Error('Error update movie');
-    }
-
-    if (file) {
-      fileName = await this.savePoster(file);
-
-      if (movie.poster) {
-        this.removePoster(movie.poster);
-      }
-    }
-
-    return this.movieRepository.save({
-      ...movie,
-      ...params,
-      ...(fileName ? { poster: fileName } : {}),
-    });
-  }
-
-  public async findAll(
-    params: MoviesFindAllParams,
+  public async all(
+    params: MoviesAllParams,
   ): Promise<[MovieEntity[], number]> {
     const { page, perPage, userId } = params;
 
@@ -104,26 +26,57 @@ export class MoviesService {
       where: { user_id: userId },
       take: perPage,
       skip: (page - 1) * perPage,
+      order: { created_at: 'ASC' },
     });
   }
 
-  public findOneWhere(params: MoviesFindOneAndWhere): Promise<MovieEntity> {
-    const { where } = params;
+  public one(params: MoviesOne): Promise<MovieEntity> {
+    const {
+      where = {},
+    } = params;
 
     return this.movieRepository.findOne({ where });
   }
 
-  public async delete(params: MoviesDeleteParams): Promise<DeleteResult> {
-    const { id } = params;
+  public async create(props: MoviesCreateParams): Promise<MovieEntity> {
+    const { file, userId, ...params } = props;
 
-    const movie = await this.findOneWhere({ where: { id } });
+    return this.movieRepository.save({
+      ...params,
+      user_id: userId,
+      ...(file ? { poster: Files.save(file) } : {}),
+    });
+  }
+
+  public async update(props: MoviesUpdateParams): Promise<MovieEntity | null> {
+    const { file, ...params } = props;
+    const movie = await this.one({ where: { id: params.id } });
 
     if (!movie) {
-      throw new Error('Error delete movie');
+      return null;
+    }
+
+    if (file && movie.poster) {
+      Files.remove(movie.poster);
+    }
+
+    return this.movieRepository.save({
+      ...movie,
+      ...params,
+      ...(file ? { poster: Files.save(file) } : {}),
+    });
+  }
+
+  public async delete(params: MoviesDeleteParams): Promise<DeleteResult | null> {
+    const { id } = params;
+    const movie = await this.one({ where: { id } });
+
+    if (!movie) {
+      return null;
     }
 
     if (movie.poster) {
-      this.removePoster(movie.poster);
+      Files.remove(movie.poster);
     }
 
     return this.movieRepository.delete({ id });

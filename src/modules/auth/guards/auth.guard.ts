@@ -8,43 +8,40 @@ import { UsersService } from '@modules/users/services';
 @Injectable()
 export class AuthGuard implements CanActivate {
   public constructor(
-    private jwtService: JwtService,
     private moduleRef: ModuleRef,
     private configService: ConfigService,
     private usersService: UsersService,
-  ) {}
+  ) {
+  }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthRequest>();
-
     const authorization = request.headers['authorization'];
     const [type, token] = authorization ? authorization.split(' ') : [];
-
-    const bearerToken = type === 'Bearer' ? token : undefined;
-
-    if (!bearerToken) {
+    const secret = this.configService.get<string>('JWT_SECRET');
+    
+    if (type !== 'Bearer' || !token) {
       throw new UnauthorizedException();
     }
 
     const jwtService = this.moduleRef.get(JwtService, { strict: false });
-
+    
     try {
-      request['user'] = (await jwtService.verifyAsync<AuthRequestPayload>(
-        token,
-        {
-          secret: this.configService.get<string>('JWT_SECRET'),
-        },
-      ));
+      const reqUserData = (await jwtService.verifyAsync<AuthRequestPayload>(token, { secret }));
+      
+      const user = await this.usersService.one(reqUserData.id);
+      
+      
+      
+      request['user'] = reqUserData;
+
+      if (user) {
+        return true;
+      }
     } catch {
-      throw new UnauthorizedException();
+      // empty
     }
 
-    const user = this.usersService.findOne(request.user.id);
-
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-
-    return true;
+    throw new UnauthorizedException();
   }
 }

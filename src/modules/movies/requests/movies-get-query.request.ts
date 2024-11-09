@@ -3,18 +3,22 @@ import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, Max, Min } from 'class-validator';
 
 export class MoviesGetQueryRequest {
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    required: false,
+  })
   @IsNumber()
-  @Transform(({ value }) => parseInt(value, 10))
   @IsOptional()
   @Min(1)
+  @Transform(({ value }) => parseInt(value, 10))
   public page?: number;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    required: false,
+  })
   @IsNumber()
-  @Transform(({ value }) => parseInt(value, 10))
   @Min(1)
   @Max(50)
   @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
   public perPage?: number;
 }

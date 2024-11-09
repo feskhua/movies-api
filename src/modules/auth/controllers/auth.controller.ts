@@ -1,64 +1,52 @@
-import {Body, Controller, Post, Res} from '@nestjs/common';
+import {ExistGuard} from "@modules/auth/guards";
+import {Body, Controller, Inject, Post, UseGuards} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthLoginRequest, AuthRegisterRequest } from '@modules/auth/requests';
+import { AuthSignInRequest, AuthSignUpRequest } from '@modules/auth/requests';
 import { UsersService } from '@modules/users/services';
-import { Response } from 'express';
 import * as bcrypt from 'bcryptjs';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  public constructor(
-    private jwtService: JwtService,
-    private usersService: UsersService,
-  ) {}
+  @Inject()
+  private jwtService: JwtService;
+
+  @Inject()
+  private usersService: UsersService;
 
   @Post('login')
-  public async login(
-    @Body() body: AuthLoginRequest,
-    @Res() response: Response
+  public async signIn(
+    @Body() body: AuthSignInRequest,
   ): Promise<{
-    accessToken: string;
+    token: string;
   }> {
     const { email, password } = body;
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.usersService.oneByEmail(email);
+    const passwordIsCorrect = user ? await bcrypt.compare(password, user.password) : null;
 
-    if (!user) {
+    if (!user || !passwordIsCorrect) {
       throw new Error('User not found');
     }
 
-    const passwordIsCorrect = await bcrypt.compare(password, user.password);
-
-    if (!passwordIsCorrect) {
-      throw new Error('User not found');
-    }
-    
-    const accessToken = await this.jwtService.signAsync({ id: user.id });
-    
     return {
-      accessToken,
+      token: await this.jwtService.signAsync({ id: user.id }),
     };
   }
 
   @Post('register')
-  public async register(
-    @Body() body: AuthRegisterRequest,
+  @UseGuards(ExistGuard)
+  public async signUp(
+    @Body() body:AuthSignUpRequest,
   ): Promise<{
-    accessToken: string;
+    token: string;
   }> {
     const { email, password } = body;
-
-    const isExist = await this.usersService.findByEmail(email);
-
-    if (isExist) {
-      throw new Error('User already exists');
-    }
 
     const user = await this.usersService.create({ email, password });
 
     return {
-      accessToken: await this.jwtService.signAsync({ id: user.id }),
+      token: await this.jwtService.signAsync({ id: user.id }),
     };
   }
 }

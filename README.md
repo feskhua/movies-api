@@ -1,30 +1,14 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## Intall node packages
 
 ```bash
 $ npm install
 ```
 
-## Fill in the .env file
-```dotenv  
-DB_HOST=localhost
-DB_PORT=
-DB_USER=
-DB_PASSWORD=
-DB_NAME=
-
-JWT_SECRET=
-JWT_EXPIRES_IN=
-
-PORT=
-STORAGE_DIRECTORY=
+## Copy .env.example to .env file and fill it
+```bash  
+cp .env.example .env
 ```
 
 ## Compile and run the project
@@ -33,11 +17,8 @@ STORAGE_DIRECTORY=
 # development
 $ npm run start
 
-# watch mode
+# or watch mode
 $ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
 ## Requirements
